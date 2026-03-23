@@ -1,0 +1,855 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Contract.io</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/mammoth/1.6.0/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Sarabun:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;500;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0f0f13;--surf:#18181f;--card:#1e1e28;
+  --b:rgba(255,255,255,.08);--bh:rgba(255,255,255,.15);
+  --gold:#d4a843;--gl:#f0c865;--gd:rgba(212,168,67,.14);
+  --txt:#f0ede8;--mut:#8a8795;--dim:#5a5768;
+  --ok:#4caf8a;--err:#e05c5c;
+  --r:12px;--rs:8px;
+}
+body{font-family:'Sarabun','Inter','Noto Sans SC',sans-serif;background:var(--bg);color:var(--txt);min-height:100vh;font-size:15px;line-height:1.65}
+.app{display:flex;min-height:100vh}
+
+/* ── Sidebar ── */
+.sb{width:256px;min-width:256px;background:var(--surf);border-right:1px solid var(--b);display:flex;flex-direction:column;position:sticky;top:0;height:100vh;overflow-y:auto}
+.sb-logo{padding:20px 18px 14px;border-bottom:1px solid var(--b)}
+.logo-row{display:flex;align-items:center;gap:10px}
+.logo-ic{width:36px;height:36px;background:linear-gradient(135deg,var(--gold),var(--gl));border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:18px}
+.logo-t{font-size:16px;font-weight:700}.logo-s{font-size:11px;color:var(--mut);letter-spacing:.3px}
+.sb-nav{flex:1;padding:8px 10px}
+.ns{font-size:10px;font-weight:700;color:var(--dim);text-transform:uppercase;letter-spacing:1.2px;padding:14px 8px 5px}
+.nb{display:flex;align-items:center;gap:10px;width:100%;padding:9px 11px;border:none;background:transparent;color:var(--mut);border-radius:var(--rs);cursor:pointer;font-family:inherit;font-size:14px;text-align:left;transition:.15s;margin-bottom:2px}
+.nb:hover{background:rgba(255,255,255,.05);color:var(--txt)}.nb.active{background:var(--gd);color:var(--gl)}
+.nb .ni{font-size:15px;width:20px;text-align:center}
+
+/* lang switcher */
+.lang-sw{padding:12px 10px;border-top:1px solid var(--b)}
+.lang-row{display:flex;gap:6px;justify-content:center}
+.lang-btn{flex:1;padding:7px 4px;border:1px solid var(--b);background:transparent;color:var(--mut);border-radius:var(--rs);cursor:pointer;font-family:inherit;font-size:12px;font-weight:600;transition:.15s;text-align:center}
+.lang-btn:hover{border-color:var(--bh);color:var(--txt)}.lang-btn.active{background:var(--gd);border-color:var(--gold);color:var(--gl)}
+
+/* ── Main ── */
+.main{flex:1;overflow:auto}
+.page{display:none}.page.active{display:block}
+.ph{padding:24px 30px 16px;border-bottom:1px solid var(--b);display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px}
+.pt{font-size:22px;font-weight:700}.ps{font-size:13px;color:var(--mut);margin-top:2px}
+.ha{display:flex;gap:8px;align-items:center}
+
+/* ── Buttons ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 15px;border-radius:var(--rs);border:none;font-family:inherit;font-size:13px;font-weight:500;cursor:pointer;transition:.15s;white-space:nowrap}
+.bp{background:var(--gold);color:#1a1410}.bp:hover{background:var(--gl);transform:translateY(-1px)}
+.bs{background:rgba(255,255,255,.07);color:var(--txt);border:1px solid var(--b)}.bs:hover{background:rgba(255,255,255,.11);border-color:var(--bh)}
+.bd{background:rgba(224,92,92,.14);color:var(--err);border:1px solid rgba(224,92,92,.24)}.bd:hover{background:rgba(224,92,92,.24)}
+.bg{background:rgba(76,175,138,.14);color:var(--ok);border:1px solid rgba(76,175,138,.24)}.bg:hover{background:rgba(76,175,138,.24)}
+.bsm{padding:6px 11px;font-size:12px}.blg{padding:11px 22px;font-size:15px}
+
+/* ── Content ── */
+.cnt{padding:22px 30px}
+.card{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.ct{font-size:14px;font-weight:600;margin-bottom:13px;display:flex;align-items:center;gap:8px}
+
+/* ── Template grid ── */
+.tgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(270px,1fr));gap:14px;padding:22px 30px}
+.tc{background:var(--card);border:1px solid var(--b);border-radius:var(--r);padding:18px;transition:.2s;position:relative;overflow:hidden}
+.tc::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--gold),var(--gl));transform:scaleX(0);transition:.2s}
+.tc:hover{border-color:var(--bh);transform:translateY(-2px)}.tc:hover::before{transform:scaleX(1)}
+.tic{font-size:26px;margin-bottom:10px}.tn{font-size:14px;font-weight:600;margin-bottom:4px}
+.td{font-size:12px;color:var(--mut);line-height:1.5;margin-bottom:10px}
+.tmeta{display:flex;gap:5px;flex-wrap:wrap;margin-bottom:12px}
+.tag{font-size:11px;padding:2px 8px;border-radius:20px;background:var(--gd);color:var(--gold);border:1px solid rgba(212,168,67,.2)}
+.tact{display:flex;gap:7px;padding-top:12px;border-top:1px solid var(--b)}
+
+/* ── Upload zone ── */
+.uz{border:2px dashed var(--bh);border-radius:var(--r);padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;position:relative}
+.uz:hover,.uz.drag{border-color:var(--gold);background:var(--gd)}
+.uz input[type=file]{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.uz-ic{font-size:36px;margin-bottom:8px}.uz-t{font-size:14px;font-weight:600;margin-bottom:3px}.uz-s{font-size:12px;color:var(--mut)}
+.uz-types{display:flex;gap:6px;justify-content:center;margin-top:10px;flex-wrap:wrap}
+.uz-tp{font-size:11px;padding:2px 9px;border-radius:20px;background:rgba(255,255,255,.06);color:var(--mut);border:1px solid var(--b)}
+.pb{width:100%;height:5px;background:rgba(255,255,255,.08);border-radius:3px;overflow:hidden;margin-top:12px}
+.pf{height:100%;background:linear-gradient(90deg,var(--gold),var(--gl));border-radius:3px;transition:width .4s}
+.ph-chips{display:flex;flex-wrap:wrap;gap:5px;margin-top:7px}
+.ph-chip{font-size:12px;padding:3px 9px;border-radius:20px;background:rgba(108,92,231,.15);color:#a29bfe;border:1px solid rgba(108,92,231,.24);font-family:monospace}
+
+/* ── Steps ── */
+.steps{display:flex;margin:0 30px 22px;border-radius:var(--r);background:var(--card);border:1px solid var(--b);overflow:hidden}
+.step{flex:1;padding:12px 14px;display:flex;align-items:center;gap:9px;font-size:13px;color:var(--mut)}
+.step.active{color:var(--gl)}.step.done{color:var(--ok)}
+.sn{width:24px;height:24px;border-radius:50%;border:1.5px solid currentColor;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;flex-shrink:0}
+.step.active .sn{background:var(--gd)}.step.done .sn{background:rgba(76,175,138,.14)}
+.step+.step{border-left:1px solid var(--b)}
+
+/* ── Form ── */
+.fg2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.fg{display:flex;flex-direction:column;gap:5px}.fg.full{grid-column:1/-1}
+label{font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.7px}
+input,textarea,select{background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:var(--rs);padding:9px 12px;color:var(--txt);font-family:inherit;font-size:14px;transition:.15s;width:100%}
+input:focus,textarea:focus,select:focus{outline:none;border-color:var(--gold);background:rgba(212,168,67,.04)}
+textarea{resize:vertical;min-height:82px}
+select option{background:#1e1e28}
+
+/* ── Sig ── */
+.sw{border:2px dashed var(--b);border-radius:var(--r);overflow:hidden;position:relative;background:rgba(255,255,255,.02);transition:.2s}
+.sw:hover{border-color:var(--gold)}
+canvas.sc{display:block;width:100%;cursor:crosshair;touch-action:none}
+.sl{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);font-size:12px;color:var(--dim);pointer-events:none;transition:opacity .2s;text-align:center;white-space:nowrap}
+.sl.h{opacity:0}
+
+/* ── Preview ── */
+.prev{background:#fff;color:#1a1a2e;border-radius:var(--r);padding:32px 40px;font-family:'Sarabun','Inter',sans-serif;font-size:14px;line-height:1.9;max-height:460px;overflow-y:auto;white-space:pre-wrap;border:1px solid var(--b)}
+.prev h2{text-align:center;font-size:17px;font-weight:700;margin-bottom:16px;text-decoration:underline}
+
+/* ── Modal ── */
+.mo{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px;backdrop-filter:blur(4px)}
+.md{background:var(--card);border:1px solid var(--b);border-radius:16px;padding:26px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto}
+.md-t{font-size:17px;font-weight:700;margin-bottom:18px;display:flex;align-items:center;gap:9px}
+.md-f{display:flex;justify-content:flex-end;gap:8px;margin-top:20px;padding-top:14px;border-top:1px solid var(--b)}
+
+/* ── Toast ── */
+.tw{position:fixed;bottom:22px;right:22px;display:flex;flex-direction:column;gap:7px;z-index:9999}
+.toast{background:var(--card);border:1px solid var(--b);border-radius:var(--rs);padding:11px 15px;font-size:13px;color:var(--txt);display:flex;align-items:center;gap:8px;animation:sli .3s ease;max-width:280px;box-shadow:0 8px 28px rgba(0,0,0,.4)}
+.toast.ok{border-color:rgba(76,175,138,.34)}.toast.err{border-color:rgba(224,92,92,.34)}
+@keyframes sli{from{transform:translateX(18px);opacity:0}to{transform:translateX(0);opacity:1}}
+
+/* ── Misc ── */
+.empty{text-align:center;padding:52px 20px;color:var(--mut)}
+.empty-i{font-size:44px;margin-bottom:10px;opacity:.5}.empty-t{font-size:15px;font-weight:600;margin-bottom:4px}.empty-s{font-size:13px}
+.di{display:flex;align-items:center;gap:12px;padding:13px 15px;background:var(--card);border:1px solid var(--b);border-radius:var(--rs);margin-bottom:7px;transition:.15s}
+.di:hover{border-color:var(--bh)}
+.di-ic{width:38px;height:38px;border-radius:var(--rs);background:var(--gd);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0}
+.di-info{flex:1;min-width:0}.di-n{font-size:13px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.di-m{font-size:11px;color:var(--mut);margin-top:2px}
+.di-act{display:flex;gap:6px}
+.ep{background:rgba(255,255,255,.04);border:1px solid var(--b);border-radius:var(--rs);padding:12px;max-height:170px;overflow-y:auto;font-size:12px;color:var(--mut);white-space:pre-wrap;line-height:1.7;font-family:monospace}
+.fb{display:inline-flex;align-items:center;gap:5px;padding:4px 10px;border-radius:var(--rs);font-size:12px;font-weight:600;border:1px solid}
+.fb-d{background:rgba(37,99,235,.14);color:#60a5fa;border-color:rgba(37,99,235,.24)}
+.fb-p{background:rgba(220,38,38,.14);color:#f87171;border-color:rgba(220,38,38,.24)}
+.fb-t{background:rgba(76,175,138,.14);color:var(--ok);border-color:rgba(76,175,138,.24)}
+.rl{display:flex;gap:14px;flex-wrap:wrap}
+.rl label{text-transform:none;font-size:13px;display:flex;align-items:center;gap:6px;cursor:pointer;color:var(--txt);font-weight:400}
+code{background:rgba(255,255,255,.08);padding:1px 6px;border-radius:4px;font-size:11px;font-family:monospace}
+.flex{display:flex}.g2{gap:8px}.g3{gap:12px}.mla{margin-left:auto}.mt2{margin-top:10px}.mt3{margin-top:18px}
+
+/* download buttons */
+.dl-row{display:flex;gap:10px;flex-wrap:wrap;margin-top:4px}
+.dl-btn{display:inline-flex;align-items:center;gap:8px;padding:12px 20px;border-radius:var(--rs);border:none;font-family:inherit;font-size:14px;font-weight:600;cursor:pointer;transition:.15s}
+.dl-word{background:#2b579a;color:#fff}.dl-word:hover{background:#1e3f70;transform:translateY(-1px)}
+.dl-pdf{background:#c0392b;color:#fff}.dl-pdf:hover{background:#922b21;transform:translateY(-1px)}
+.dl-save{background:rgba(76,175,138,.2);color:var(--ok);border:1px solid rgba(76,175,138,.3)}.dl-save:hover{background:rgba(76,175,138,.3)}
+.dl-btn:disabled{opacity:.5;cursor:not-allowed;transform:none}
+
+@media(max-width:640px){.fg2{grid-template-columns:1fr}.sb{display:none}.ph,.cnt{padding:14px}.tgrid{padding:14px;grid-template-columns:1fr}.steps{margin:0 14px 16px}}
+::-webkit-scrollbar{width:5px}::-webkit-scrollbar-track{background:transparent}::-webkit-scrollbar-thumb{background:rgba(255,255,255,.1);border-radius:3px}
+</style>
+</head>
+<body>
+<div class="app">
+<!-- Sidebar -->
+<nav class="sb">
+  <div class="sb-logo">
+    <div class="logo-row">
+      <div class="logo-ic">📜</div>
+      <div><div class="logo-t">Contract.io</div><div class="logo-s" data-i="tagline">ระบบจัดการสัญญา</div></div>
+    </div>
+  </div>
+  <div class="sb-nav">
+    <div class="ns" data-i="menu_main">เมนูหลัก</div>
+    <button class="nb active" onclick="showPage('tpls')"><span class="ni">📋</span> <span data-i="nav_templates">Templates</span></button>
+    <button class="nb" onclick="showPage('create')"><span class="ni">✏️</span> <span data-i="nav_create">สร้างสัญญา</span></button>
+    <button class="nb" onclick="showPage('hist')"><span class="ni">🗂️</span> <span data-i="nav_history">ประวัติ</span></button>
+    <div class="ns" data-i="menu_add">เพิ่ม Template</div>
+    <button class="nb" onclick="showMo('mo-ul')"><span class="ni">📁</span> <span data-i="nav_upload">Upload ไฟล์</span></button>
+    <button class="nb" onclick="showMo('mo-man')"><span class="ni">✍️</span> <span data-i="nav_manual">พิมพ์เอง</span></button>
+  </div>
+  <div class="lang-sw">
+    <div class="lang-row">
+      <button class="lang-btn active" onclick="setLang('th')">🇹🇭 ไทย</button>
+      <button class="lang-btn" onclick="setLang('en')">🇬🇧 EN</button>
+      <button class="lang-btn" onclick="setLang('zh')">🇨🇳 中文</button>
+    </div>
+  </div>
+</nav>
+
+<!-- Main -->
+<div class="main">
+
+  <!-- Templates -->
+  <div id="page-tpls" class="page active">
+    <div class="ph">
+      <div><div class="pt" data-i="pg_templates">Templates สัญญา</div><div class="ps" data-i="pg_templates_sub">เลือก template</div></div>
+      <div class="ha">
+        <button class="btn bs" onclick="showMo('mo-man')">✍️ <span data-i="btn_manual">พิมพ์เอง</span></button>
+        <button class="btn bp" onclick="showMo('mo-ul')">📁 <span data-i="btn_upload">Upload ไฟล์</span></button>
+      </div>
+    </div>
+    <div id="tgrid" class="tgrid"></div>
+  </div>
+
+  <!-- Create -->
+  <div id="page-create" class="page">
+    <div class="ph">
+      <div><div class="pt" id="c-title">สัญญา</div><div class="ps" id="c-sub"></div></div>
+      <div class="ha"><button class="btn bs" onclick="showPage('tpls')">← <span data-i="btn_back">กลับ</span></button></div>
+    </div>
+    <div class="steps">
+      <div class="step active" id="step1"><div class="sn">1</div><span data-i="step1">กรอกข้อมูล</span></div>
+      <div class="step" id="step2"><div class="sn">2</div><span data-i="step2">ลายเซ็น</span></div>
+      <div class="step" id="step3"><div class="sn">3</div><span data-i="step3">ออกเอกสาร</span></div>
+    </div>
+    <!-- s1 -->
+    <div id="s1" class="cnt">
+      <div class="card"><div class="ct">📝 <span data-i="form_title">ข้อมูลสัญญา</span></div><div id="dform" class="fg2"></div></div>
+      <div class="flex g2" style="justify-content:flex-end"><button class="btn bp blg" onclick="gS2()"><span data-i="btn_next_sig">ต่อไป → ลายเซ็น</span></button></div>
+    </div>
+    <!-- s2 -->
+    <div id="s2" class="cnt" style="display:none">
+      <div class="card">
+        <div class="ct">✍️ <span data-i="sig_title">ลายเซ็นคู่สัญญา</span></div>
+        <div class="fg2">
+          <div class="fg"><label data-i="sig1_lbl">ลายเซ็น ฝ่ายที่ 1</label><div class="sw"><canvas id="sc1" height="120" class="sc"></canvas><div class="sl" id="sl1" data-i="sig_hint">แตะ/คลิกเพื่อเซ็นชื่อ</div></div><button class="btn bs bsm mt2" onclick="clrSig(1)">🗑 <span data-i="btn_clear">ล้าง</span></button></div>
+          <div class="fg"><label data-i="sig2_lbl">ลายเซ็น ฝ่ายที่ 2</label><div class="sw"><canvas id="sc2" height="120" class="sc"></canvas><div class="sl" id="sl2" data-i="sig_hint">แตะ/คลิกเพื่อเซ็นชื่อ</div></div><button class="btn bs bsm mt2" onclick="clrSig(2)">🗑 <span data-i="btn_clear">ล้าง</span></button></div>
+        </div>
+      </div>
+      <div class="flex g2" style="justify-content:flex-end">
+        <button class="btn bs blg" onclick="gS1()">← <span data-i="btn_back">กลับ</span></button>
+        <button class="btn bp blg" onclick="gS3()"><span data-i="btn_next_export">ต่อไป → ออกเอกสาร</span></button>
+      </div>
+    </div>
+    <!-- s3 -->
+    <div id="s3" class="cnt" style="display:none">
+      <div class="card"><div class="ct">👁 <span data-i="preview_title">ตัวอย่างเอกสาร</span></div><div id="prev" class="prev"></div></div>
+      <div class="card">
+        <div class="ct">📤 <span data-i="export_title">ออกเอกสาร</span></div>
+        <div class="dl-row">
+          <button class="dl-btn dl-word" id="btn-docx" onclick="doDownload('docx')">📄 <span data-i="dl_word">ดาวน์โหลด Word (.docx)</span></button>
+          <button class="dl-btn dl-pdf"  id="btn-pdf"  onclick="doDownload('pdf')">📑 <span data-i="dl_pdf">ดาวน์โหลด PDF</span></button>
+          <button class="dl-btn dl-save" onclick="saveHist()">💾 <span data-i="dl_save">บันทึก</span></button>
+        </div>
+        <p style="font-size:12px;color:var(--mut);margin-top:10px" data-i="export_note">ไฟล์รองรับภาษาไทย อังกฤษ และจีนครบถ้วน</p>
+      </div>
+      <div class="flex g2" style="justify-content:flex-end;margin-top:6px"><button class="btn bs" onclick="gS2()">← <span data-i="btn_back">กลับ</span></button></div>
+    </div>
+  </div>
+
+  <!-- History -->
+  <div id="page-hist" class="page">
+    <div class="ph"><div><div class="pt" data-i="pg_history">ประวัติสัญญา</div><div class="ps" data-i="pg_history_sub">สัญญาทั้งหมด</div></div></div>
+    <div class="cnt"><div id="hlist"></div></div>
+  </div>
+</div>
+</div>
+
+<!-- Modal: Upload -->
+<div id="mo-ul" class="mo" style="display:none">
+  <div class="md">
+    <div class="md-t">📁 <span data-i="mo_ul_title">Upload ไฟล์ Template</span></div>
+    <div id="uz" class="uz" ondragover="event.preventDefault();this.classList.add('drag')" ondragleave="this.classList.remove('drag')" ondrop="onDrop(event)">
+      <input type="file" id="ul-in" accept=".docx,.pdf,.txt" onchange="onFileSel(this.files[0])">
+      <div class="uz-ic">📂</div>
+      <div class="uz-t" data-i="uz_title">ลากไฟล์มาวาง หรือคลิกเพื่อเลือก</div>
+      <div class="uz-s" data-i="uz_sub">ระบบจะอ่านเนื้อหาและตรวจจับ placeholder อัตโนมัติ</div>
+      <div class="uz-types"><span class="uz-tp">📄 .docx</span><span class="uz-tp">📑 .pdf</span><span class="uz-tp">📝 .txt</span></div>
+    </div>
+    <div id="ul-prog" style="display:none;margin-top:10px">
+      <div class="pb"><div class="pf" id="ul-bar" style="width:0%"></div></div>
+      <p style="font-size:12px;color:var(--mut);margin-top:7px;text-align:center" id="ul-stat"></p>
+    </div>
+    <div id="ul-res" style="display:none;margin-top:16px">
+      <div class="flex g2" style="align-items:center;margin-bottom:12px"><div id="ul-badge"></div><span id="ul-fn" style="font-size:13px;font-weight:600"></span></div>
+      <div class="fg2">
+        <div class="fg"><label data-i="lbl_tpl_name">ชื่อ Template *</label><input id="ul-name" type="text"></div>
+        <div class="fg"><label data-i="lbl_icon">ไอคอน</label><input id="ul-icon" type="text" maxlength="4" placeholder="📄"></div>
+        <div class="fg full"><label data-i="lbl_desc">คำอธิบาย</label><input id="ul-desc" type="text"></div>
+        <div class="fg full"><label data-i="lbl_tags">Tags</label><input id="ul-tags" type="text" placeholder="e.g. เช่า, บ้าน"></div>
+      </div>
+      <div style="margin-top:14px">
+        <div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.7px;margin-bottom:7px" data-i="ph_style_lbl">รูปแบบ Placeholder</div>
+        <div class="rl">
+          <label><input type="radio" name="phs" value="double" checked onchange="reScan()"> <code>{{field}}</code></label>
+          <label><input type="radio" name="phs" value="bracket" onchange="reScan()"> <code>[field]</code></label>
+          <label><input type="radio" name="phs" value="underscore" onchange="reScan()"> <code>_____</code></label>
+          <label><input type="radio" name="phs" value="dotdot" onchange="reScan()"> <code>......</code></label>
+        </div>
+      </div>
+      <div id="ul-ph-w" style="display:none;margin-top:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px" data-i="ph_found">Placeholder ที่ตรวจพบ</div>
+        <div id="ul-chips" class="ph-chips"></div>
+      </div>
+      <div style="margin-top:12px">
+        <div style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.7px;margin-bottom:5px" data-i="preview_content">ตัวอย่างเนื้อหา</div>
+        <div id="ul-prev" class="ep"></div>
+      </div>
+    </div>
+    <div class="md-f">
+      <button class="btn bs" onclick="closeMo('mo-ul');resetUL()" data-i="btn_cancel">ยกเลิก</button>
+      <button class="btn bp" id="ul-save" onclick="saveUL()" style="display:none">✓ <span data-i="btn_save_tpl">บันทึก Template</span></button>
+    </div>
+  </div>
+</div>
+
+<!-- Modal: Manual -->
+<div id="mo-man" class="mo" style="display:none">
+  <div class="md">
+    <div class="md-t">✍️ <span data-i="mo_man_title">พิมพ์ Template เอง</span></div>
+    <div class="fg2">
+      <div class="fg"><label data-i="lbl_tpl_name">ชื่อ *</label><input id="m-name" type="text"></div>
+      <div class="fg"><label data-i="lbl_icon">ไอคอน</label><input id="m-icon" type="text" maxlength="4" placeholder="📄"></div>
+      <div class="fg full"><label data-i="lbl_desc">คำอธิบาย</label><input id="m-desc" type="text"></div>
+      <div class="fg full">
+        <label data-i="lbl_body">เนื้อหา (ใช้ <code>{{field}}</code> เป็น placeholder) *</label>
+        <textarea id="m-body" style="min-height:190px;font-size:12px;font-family:monospace" placeholder="สัญญาเช่าบ้าน&#10;&#10;ผู้ให้เช่า: {{ชื่อผู้ให้เช่า}}&#10;ค่าเช่า: {{ค่าเช่า}} บาท/เดือน"></textarea>
+      </div>
+      <div class="fg full"><label data-i="lbl_tags">Tags</label><input id="m-tags" type="text"></div>
+    </div>
+    <div class="md-f">
+      <button class="btn bs" onclick="closeMo('mo-man')" data-i="btn_cancel">ยกเลิก</button>
+      <button class="btn bp" onclick="saveMan()">✓ <span data-i="btn_save_tpl">บันทึก</span></button>
+    </div>
+  </div>
+</div>
+
+<div class="tw" id="tw"></div>
+
+<script>
+// ════════════════════════════════════════════
+// i18n
+// ════════════════════════════════════════════
+const I18N = {
+  th: {
+    tagline:'ระบบจัดการสัญญา', menu_main:'เมนูหลัก', menu_add:'เพิ่ม Template',
+    nav_templates:'Templates', nav_create:'สร้างสัญญา', nav_history:'ประวัติ',
+    nav_upload:'Upload ไฟล์', nav_manual:'พิมพ์เอง',
+    pg_templates:'Templates สัญญา', pg_templates_sub:'เลือก template เพื่อสร้างสัญญา',
+    pg_history:'ประวัติสัญญา', pg_history_sub:'สัญญาทั้งหมดที่บันทึกไว้',
+    btn_manual:'พิมพ์เอง', btn_upload:'Upload ไฟล์', btn_back:'กลับ',
+    btn_next_sig:'ต่อไป → ลายเซ็น', btn_next_export:'ต่อไป → ออกเอกสาร',
+    btn_clear:'ล้าง', btn_cancel:'ยกเลิก', btn_save_tpl:'บันทึก Template',
+    step1:'กรอกข้อมูล', step2:'ลายเซ็น', step3:'ออกเอกสาร',
+    form_title:'ข้อมูลสัญญา', sig_title:'ลายเซ็นคู่สัญญา',
+    sig1_lbl:'ลายเซ็น ฝ่ายที่ 1', sig2_lbl:'ลายเซ็น ฝ่ายที่ 2',
+    sig_hint:'แตะ/คลิกเพื่อเซ็นชื่อ',
+    preview_title:'ตัวอย่างเอกสาร', export_title:'ออกเอกสาร',
+    dl_word:'ดาวน์โหลด Word (.docx)', dl_pdf:'ดาวน์โหลด PDF', dl_save:'บันทึก',
+    export_note:'ไฟล์รองรับภาษาไทย อังกฤษ และจีน',
+    mo_ul_title:'Upload ไฟล์ Template', uz_title:'ลากไฟล์มาวาง หรือคลิกเพื่อเลือก',
+    uz_sub:'ระบบจะอ่านเนื้อหาและตรวจจับ placeholder อัตโนมัติ',
+    ph_style_lbl:'รูปแบบ Placeholder ในไฟล์', ph_found:'Placeholder ที่ตรวจพบ',
+    preview_content:'ตัวอย่างเนื้อหา',
+    mo_man_title:'พิมพ์ Template เอง',
+    lbl_tpl_name:'ชื่อ Template *', lbl_icon:'ไอคอน', lbl_desc:'คำอธิบาย',
+    lbl_tags:'Tags (คั่นด้วย ,)', lbl_body:'เนื้อหา',
+    btn_use:'ใช้งาน', btn_edit:'แก้ไข',
+    empty_tpl:'ยังไม่มี Template', empty_tpl_s:'Upload ไฟล์หรือพิมพ์เองด้านบน',
+    empty_hist:'ยังไม่มีประวัติ', empty_hist_s:'สร้างสัญญาแล้วกดบันทึก',
+    toast_saved:'บันทึกแล้ว', toast_deleted:'ลบแล้ว', toast_added:'เพิ่มแล้ว',
+    toast_edited:'แก้ไขแล้ว', toast_dl_word:'ดาวน์โหลด Word สำเร็จ',
+    toast_dl_pdf:'ดาวน์โหลด PDF สำเร็จ', toast_err_name:'กรุณากรอกชื่อ',
+    toast_err_body:'กรุณากรอกชื่อและเนื้อหา', toast_read_ok:'อ่านไฟล์สำเร็จ',
+    toast_read_err:'อ่านไฟล์ไม่สำเร็จ', toast_filetype:'รองรับเฉพาะ .docx .pdf .txt',
+    confirm_del:'ลบรายการนี้?', confirm_del_tpl:'ลบ Template นี้?',
+    sig_label_1:'ผู้ให้เช่า / ฝ่ายที่ 1', sig_label_2:'ผู้เช่า / ฝ่ายที่ 2',
+    reading_file:'กำลังอ่านไฟล์...', reading_page:'กำลังอ่านหน้า',
+    no_placeholder:'ไม่พบ placeholder — เอกสารจะสร้างตามที่มีอยู่',
+    downloading:'กำลังสร้างไฟล์...',
+  },
+  en: {
+    tagline:'Contract Management', menu_main:'Main Menu', menu_add:'Add Template',
+    nav_templates:'Templates', nav_create:'New Contract', nav_history:'History',
+    nav_upload:'Upload File', nav_manual:'Type Manually',
+    pg_templates:'Contract Templates', pg_templates_sub:'Select a template to start',
+    pg_history:'Contract History', pg_history_sub:'All saved contracts',
+    btn_manual:'Type Manually', btn_upload:'Upload File', btn_back:'Back',
+    btn_next_sig:'Next → Signature', btn_next_export:'Next → Export',
+    btn_clear:'Clear', btn_cancel:'Cancel', btn_save_tpl:'Save Template',
+    step1:'Fill Data', step2:'Signature', step3:'Export',
+    form_title:'Contract Details', sig_title:'Party Signatures',
+    sig1_lbl:'Signature — Party 1', sig2_lbl:'Signature — Party 2',
+    sig_hint:'Click / tap to sign',
+    preview_title:'Document Preview', export_title:'Export Document',
+    dl_word:'Download Word (.docx)', dl_pdf:'Download PDF', dl_save:'Save',
+    export_note:'Supports Thai, English, and Chinese characters',
+    mo_ul_title:'Upload Template File', uz_title:'Drag file here or click to browse',
+    uz_sub:'System will auto-detect placeholders',
+    ph_style_lbl:'Placeholder Style in File', ph_found:'Detected Placeholders',
+    preview_content:'Content Preview',
+    mo_man_title:'Write Template Manually',
+    lbl_tpl_name:'Template Name *', lbl_icon:'Icon', lbl_desc:'Description',
+    lbl_tags:'Tags (comma-separated)', lbl_body:'Content',
+    btn_use:'Use', btn_edit:'Edit',
+    empty_tpl:'No Templates Yet', empty_tpl_s:'Upload a file or type one above',
+    empty_hist:'No History Yet', empty_hist_s:'Create a contract and save it',
+    toast_saved:'Saved', toast_deleted:'Deleted', toast_added:'Added',
+    toast_edited:'Updated', toast_dl_word:'Word downloaded',
+    toast_dl_pdf:'PDF downloaded', toast_err_name:'Please enter a name',
+    toast_err_body:'Please enter name and content', toast_read_ok:'File read successfully',
+    toast_read_err:'Failed to read file', toast_filetype:'Only .docx .pdf .txt supported',
+    confirm_del:'Delete this item?', confirm_del_tpl:'Delete this template?',
+    sig_label_1:'Lessor / Party 1', sig_label_2:'Lessee / Party 2',
+    reading_file:'Reading file...', reading_page:'Reading page',
+    no_placeholder:'No placeholders found — document will be created as-is',
+    downloading:'Generating file...',
+  },
+  zh: {
+    tagline:'合同管理系统', menu_main:'主菜单', menu_add:'添加模板',
+    nav_templates:'模板', nav_create:'新建合同', nav_history:'历史记录',
+    nav_upload:'上传文件', nav_manual:'手动输入',
+    pg_templates:'合同模板', pg_templates_sub:'选择模板以创建合同',
+    pg_history:'合同历史', pg_history_sub:'所有已保存的合同',
+    btn_manual:'手动输入', btn_upload:'上传文件', btn_back:'返回',
+    btn_next_sig:'下一步 → 签名', btn_next_export:'下一步 → 导出',
+    btn_clear:'清除', btn_cancel:'取消', btn_save_tpl:'保存模板',
+    step1:'填写资料', step2:'签名', step3:'导出文件',
+    form_title:'合同详情', sig_title:'双方签名',
+    sig1_lbl:'甲方签名', sig2_lbl:'乙方签名',
+    sig_hint:'点击/触摸签名',
+    preview_title:'文件预览', export_title:'导出文件',
+    dl_word:'下载 Word (.docx)', dl_pdf:'下载 PDF', dl_save:'保存',
+    export_note:'支持中文、泰文和英文字符',
+    mo_ul_title:'上传模板文件', uz_title:'拖放文件或点击浏览',
+    uz_sub:'系统将自动检测占位符',
+    ph_style_lbl:'文件中的占位符格式', ph_found:'检测到的占位符',
+    preview_content:'内容预览',
+    mo_man_title:'手动编写模板',
+    lbl_tpl_name:'模板名称 *', lbl_icon:'图标', lbl_desc:'描述',
+    lbl_tags:'标签（逗号分隔）', lbl_body:'内容',
+    btn_use:'使用', btn_edit:'编辑',
+    empty_tpl:'暂无模板', empty_tpl_s:'请上传文件或手动输入',
+    empty_hist:'暂无历史记录', empty_hist_s:'创建合同后保存即可查看',
+    toast_saved:'已保存', toast_deleted:'已删除', toast_added:'已添加',
+    toast_edited:'已更新', toast_dl_word:'Word 下载成功',
+    toast_dl_pdf:'PDF 下载成功', toast_err_name:'请输入名称',
+    toast_err_body:'请输入名称和内容', toast_read_ok:'文件读取成功',
+    toast_read_err:'文件读取失败', toast_filetype:'仅支持 .docx .pdf .txt',
+    confirm_del:'确认删除？', confirm_del_tpl:'确认删除此模板？',
+    sig_label_1:'出租方 / 甲方', sig_label_2:'承租方 / 乙方',
+    reading_file:'正在读取文件...', reading_page:'正在读取页面',
+    no_placeholder:'未找到占位符 — 将按原样创建文档',
+    downloading:'正在生成文件...',
+  }
+};
+let lang = 'th';
+function t(k){ return (I18N[lang]||I18N.th)[k] || k; }
+function applyLang(){
+  document.querySelectorAll('[data-i]').forEach(el=>{
+    el.textContent = t(el.getAttribute('data-i'));
+  });
+  document.querySelectorAll('.lang-btn').forEach(b=>{
+    b.classList.toggle('active', b.textContent.includes(lang==='th'?'ไทย':lang==='en'?'EN':'中文'));
+  });
+  // re-render dynamic content
+  renderTpls(); renderHist();
+}
+function setLang(l){ lang=l; applyLang(); }
+
+// ════════════════════════════════════════════
+// PDF.js worker
+// ════════════════════════════════════════════
+if(typeof pdfjsLib!=='undefined') pdfjsLib.GlobalWorkerOptions.workerSrc='https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.174/pdf.worker.min.js';
+
+// ════════════════════════════════════════════
+// State
+// ════════════════════════════════════════════
+const S={templates:[],history:[],cur:null,form:{},sigs:{1:null,2:null},ulText:'',ulFile:null};
+
+const DEFAULTS=[
+  {"id": "fansign", "name": {"th": "สัญญา Fan Sign (จีน-อังกฤษ)", "en": "Fan Sign Agreement (ZH-EN)", "zh": "你签售会合作协议"}, "icon": "🎤", "desc": {"th": "สัญญาร่วมงาน Fan Sign ภาษาจีน-อังกฤษ", "en": "Fansign cooperation agreement ZH/EN", "zh": "你签售会合作协议（中英双语）"}, "tags": ["Fan Sign", "中文", "English", "สัญญาศิลปิน"], "body": "你签售会合作协议\nFANSIGN COOPERATION AGREEMENT\n\n甲方 Party A：{{甲方公司名称 / Party A Company Name}}\n签约代表 Signatory：{{甲方签约代表 / Party A Signatory}}\n联系方式 Contact：{{甲方联系方式 / Party A Contact}}\n\n乙方 Party B：{{乙方公司名称 / Party B Company Name}}\n签约代表 Signatory：{{乙方签约代表 / Party B Signatory}}\n联系方式 Contact：{{乙方联系方式 / Party B Contact}}\n\n乙方艺人 Artist(s)：\n1. 姓名 Name：{{艺人1姓名 / Artist 1 Name}}　泰国身份证号 Thai ID：{{艺人1身份证 / Artist 1 ID}}\n2. 姓名 Name：{{艺人2姓名 / Artist 2 Name}}　泰国身份证号 Thai ID：{{艺人2身份证 / Artist 2 ID}}\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n一、合作内容 COOPERATION CONTENT\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. 活动名称 Event Name：{{活动名称 / Event Name}}\n2. 参加活动艺人 Artist(s)：{{参加艺人 / Participating Artists}}\n3. 活动时间 Date：{{活动日期 / Event Date}} (具体日期待协商 TBC)\n4. 活动地点 Venue：{{活动地点 / Event Location}}，中国 China\n5. 本次活动总时长不得超过 {{活动时长上限(小时) / Max Duration (hrs)}} 小时（含 {{含准备时间(小时) / Including Prep Time (hrs)}} 小时）\n   如超时每超 1 小时罚款 {{超时罚款(万泰铢) / Overtime Fine (10k THB)}} 万泰铢\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n二、合作报酬 REMUNERATION\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n总额 Total：{{合作报酬总额(港币) / Total Fee (HKD)}} 港币 HKD\n\n付款方式 Payment Schedule：\n- 第一期 1st Payment (50%)：{{第一期金额(港币) / 1st Payment (HKD)}} 港币\n  于签约后 5 个工作日内支付 Within 5 working days of signing\n- 第二期 2nd Payment (50%)：{{第二期金额(港币) / 2nd Payment (HKD)}} 港币\n  于艺人出发前 5 个工作日内支付 5 working days before artist departure\n\n收款账号 Bank Account：\nAccount Name：TH HEADLINE LIMITED\nAccount Number：{{收款账号 / Account Number}}\nBank：China Construction Bank (Asia) Corporation Limited\nSwift Code：CCBQHKAX\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n三、差旅费用 TRAVEL & ACCOMMODATION\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\n1. 机票 Flights：往返 {{出发地 / Departure City}}，商务舱 {{商务舱数量 / Business Class}} 位，经济舱 {{经济舱数量 / Economy Class}} 位\n2. 住宿 Hotel：四星级及以上 4-star+，艺人 {{艺人人数 / Artist Count}} 名，随行 {{随行人数 / Staff Count}} 名\n   房型：双床房 {{双床房数量 / Twin Rooms}} 间，大床房 {{大床房数量 / King Rooms}} 间，工作室 1 间\n3. 餐费 Meals：艺人 {{艺人餐费(元/天) / Artist Meals CNY/day}} 元/天，随行 {{随行餐费(元/天) / Staff Meals CNY/day}} 元/天\n4. 人身意外险 Insurance：不低于 50 万元人民币/人\n\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n签署 SIGNATURES\n━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━\n\nParty A 甲方：{{甲方公司名称 / Party A Company Name}}\nSignatory：_________________________\nDate 日期：{{签署日期 / Signing Date}}\n\nParty B 乙方：{{乙方公司名称 / Party B Company Name}}\nSignatory：_________________________\nDate 日期：{{签署日期 / Signing Date}}"},
+  {id:'d1',name:{th:'สัญญาเช่าบ้าน',en:'House Rental Agreement',zh:'房屋租赁合同'},icon:'🏠',
+   desc:{th:'สัญญาเช่าอสังหาริมทรัพย์',en:'Residential property rental',zh:'住宅物业租赁'},
+   tags:['เช่า','บ้าน','Rental'],
+   body:`สัญญาเช่าบ้าน\n\nผู้ให้เช่า: {{ชื่อผู้ให้เช่า}}  บัตรประชาชน {{บัตรประชาชนผู้ให้เช่า}}\nที่อยู่: {{ที่อยู่ผู้ให้เช่า}}\n\nผู้เช่า: {{ชื่อผู้เช่า}}  บัตรประชาชน {{บัตรประชาชนผู้เช่า}}\nที่อยู่: {{ที่อยู่ผู้เช่า}}\n\nข้อ 1 ทรัพย์สินที่เช่า: {{ที่อยู่ทรัพย์สิน}}\nข้อ 2 ระยะเวลา: {{วันที่เริ่ม}} ถึง {{วันที่สิ้นสุด}}\nข้อ 3 ค่าเช่า: {{ค่าเช่า}} บาท/เดือน ชำระทุกวันที่ {{วันชำระ}}\nข้อ 4 เงินประกัน: {{เงินประกัน}} บาท\n\nทำขึ้น ณ วันที่ {{วันที่ทำสัญญา}}`},
+  {id:'d2',name:{th:'สัญญาจ้างงาน',en:'Employment Contract',zh:'劳动合同'},icon:'💼',
+   desc:{th:'สัญญาจ้างพนักงาน',en:'Employee/freelance agreement',zh:'雇用员工合同'},
+   tags:['จ้างงาน','HR','Employment'],
+   body:`สัญญาจ้างงาน\n\nนายจ้าง: {{ชื่อบริษัท/นายจ้าง}}\nที่อยู่: {{ที่อยู่นายจ้าง}}\n\nลูกจ้าง: {{ชื่อลูกจ้าง}}  บัตรประชาชน {{บัตรประชาชนลูกจ้าง}}\n\nตำแหน่ง: {{ตำแหน่งงาน}}  แผนก: {{แผนก}}\nวันเริ่มงาน: {{วันที่เริ่มงาน}}\nเงินเดือน: {{เงินเดือน}} บาท/เดือน\nระยะทดลองงาน: {{ระยะเวลาทดลองงาน}} วัน\n\nทำขึ้น ณ วันที่ {{วันที่ทำสัญญา}}`},
+  {id:'d3',name:{th:'สัญญาซื้อขาย',en:'Sale Agreement',zh:'买卖合同'},icon:'🛒',
+   desc:{th:'สัญญาซื้อขายสินค้า',en:'Goods/property sale',zh:'商品买卖'},
+   tags:['ซื้อขาย','Sale'],
+   body:`สัญญาซื้อขาย\n\nผู้ขาย: {{ชื่อผู้ขาย}}  ที่อยู่: {{ที่อยู่ผู้ขาย}}\nผู้ซื้อ: {{ชื่อผู้ซื้อ}}  ที่อยู่: {{ที่อยู่ผู้ซื้อ}}\n\nสินค้า: {{รายการสินค้า}}  จำนวน: {{จำนวน}} {{หน่วย}}\nราคารวม: {{ราคารวม}} บาท\nวิธีชำระ: {{วิธีชำระเงิน}}\nส่งมอบภายใน: {{กำหนดส่งมอบ}}\n\nทำขึ้น ณ วันที่ {{วันที่ทำสัญญา}}`},
+  {id:'d4',name:{th:'NDA (ความลับ)',en:'NDA',zh:'保密协议'},icon:'🔐',
+   desc:{th:'Non-Disclosure Agreement',en:'Non-Disclosure Agreement',zh:'保密协议 (NDA)'},
+   tags:['NDA','ธุรกิจ','Business'],
+   body:`สัญญารักษาความลับ (NDA)\n\nฝ่ายที่ 1: {{ชื่อฝ่ายที่ 1}}  ที่อยู่: {{ที่อยู่ฝ่ายที่ 1}}\nฝ่ายที่ 2: {{ชื่อฝ่ายที่ 2}}  ที่อยู่: {{ที่อยู่ฝ่ายที่ 2}}\n\nข้อมูลลับ: {{ประเภทข้อมูลลับ}}\nวัตถุประสงค์: {{วัตถุประสงค์}}\nระยะเวลา: {{ระยะเวลา}}\nค่าปรับกรณีละเมิด: {{ค่าปรับ}} บาท\n\nทำขึ้น ณ วันที่ {{วันที่ทำสัญญา}}`}
+];
+
+function tplName(t){ return typeof t.name==='object'?(t.name[lang]||t.name.th||t.name.en||''):t.name||''; }
+function tplDesc(t){ return typeof t.desc==='object'?(t.desc[lang]||t.desc.th||t.desc.en||''):t.desc||''; }
+
+function init(){
+  const st=localStorage.getItem('cio_tpls2');
+  const sh=localStorage.getItem('cio_hist2');
+  S.templates=st?JSON.parse(st):[...DEFAULTS];
+  S.history=sh?JSON.parse(sh):[];
+  renderTpls();renderHist();initSigs();
+}
+
+// ════════════════════════════════════════════
+// Nav
+// ════════════════════════════════════════════
+function showPage(n){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+n).classList.add('active');
+  document.querySelectorAll('.nb').forEach(b=>b.classList.remove('active'));
+  const map={tpls:0,create:1,hist:2};
+  if(map[n]!==undefined) document.querySelectorAll('.nb')[map[n]].classList.add('active');
+  if(n==='hist') renderHist();
+}
+
+// ════════════════════════════════════════════
+// Templates
+// ════════════════════════════════════════════
+function renderTpls(){
+  const g=document.getElementById('tgrid');
+  if(!S.templates.length){g.innerHTML=`<div class="empty" style="grid-column:1/-1"><div class="empty-i">📋</div><div class="empty-t">${t('empty_tpl')}</div><div class="empty-s">${t('empty_tpl_s')}</div></div>`;return;}
+  g.innerHTML=S.templates.map(tp=>`
+    <div class="tc">
+      <div class="tic">${tp.icon||'📄'}</div>
+      <div class="tn">${tplName(tp)}</div>
+      <div class="td">${tplDesc(tp)}</div>
+      <div class="tmeta">${(tp.tags||[]).map(x=>`<span class="tag">${x}</span>`).join('')}</div>
+      <div class="tact">
+        <button class="btn bp bsm" onclick="startCreate('${tp.id}')">✏️ ${t('btn_use')}</button>
+        <button class="btn bs bsm" onclick="editTpl('${tp.id}')">${t('btn_edit')}</button>
+        <button class="btn bd bsm mla" onclick="delTpl('${tp.id}')">🗑</button>
+      </div>
+    </div>`).join('');
+}
+function saveTpls(){localStorage.setItem('cio_tpls2',JSON.stringify(S.templates));}
+function delTpl(id){if(!confirm(t('confirm_del_tpl')))return;S.templates=S.templates.filter(x=>x.id!==id);saveTpls();renderTpls();toast(t('toast_deleted'),'ok');}
+function editTpl(id){
+  const tp=S.templates.find(x=>x.id===id);if(!tp)return;
+  document.getElementById('m-name').value=tplName(tp);
+  document.getElementById('m-icon').value=tp.icon||'';
+  document.getElementById('m-desc').value=tplDesc(tp);
+  document.getElementById('m-body').value=tp.body||'';
+  document.getElementById('m-tags').value=(tp.tags||[]).join(', ');
+  document.getElementById('mo-man').setAttribute('data-eid',id);
+  showMo('mo-man');
+}
+
+// ════════════════════════════════════════════
+// Create flow
+// ════════════════════════════════════════════
+function fid(s){return s.replace(/[^a-zA-Zก-๙\u4e00-\u9fff0-9]/g,'_');}
+
+function startCreate(id){
+  S.cur=S.templates.find(tp=>tp.id===id);if(!S.cur)return;
+  document.getElementById('c-title').textContent='✏️ '+tplName(S.cur);
+  document.getElementById('c-sub').textContent=tplDesc(S.cur);
+  buildForm();showPage('create');show123(1);
+}
+
+function buildForm(){
+  const fields=[...new Set([...(S.cur.body||'').matchAll(/\{\{(.+?)\}\}/g)].map(m=>m[1]))];
+  S.form={};
+  if(!fields.length){
+    document.getElementById('dform').innerHTML='<div class="fg full"><p style="color:var(--mut);font-size:13px">'+t('no_placeholder')+'</p></div>';
+    return;
+  }
+  document.getElementById('dform').innerHTML=fields.map(function(f){
+    const lng=/(ที่อยู่|รายละเอียด|address|detail|描述|地址|Address|Detail)/i.test(f);
+    const isThai=/[\u0e00-\u0e7f]/.test(f);
+    const hint=getThaiHint(f);
+    const hintEl=(!isThai&&hint)?'<span style="font-size:11px;color:var(--dim);font-weight:400;text-transform:none;letter-spacing:0">'+hint+'</span>':'';
+    const labelEl='<label style="display:flex;flex-direction:column;gap:2px">'
+      +'<span style="font-size:11px;font-weight:700;color:var(--mut);text-transform:uppercase;letter-spacing:.7px">'+f+'</span>'
+      +hintEl
+      +'</label>';
+    const fieldEl=lng
+      ?'<textarea id="f_'+fid(f)+'" placeholder="'+f+'" oninput="SF(\''+fid(f)+'\',\''+f+'\',this.value)"></textarea>'
+      :'<input type="text" id="f_'+fid(f)+'" placeholder="'+f+'" oninput="SF(\''+fid(f)+'\',\''+f+'\',this.value)">';
+    return '<div class="fg '+(lng?'full':'')+'">'+labelEl+fieldEl+'</div>';
+  }).join('');
+}
+
+const THAI_HINTS={
+  'name':'ชื่อ','full name':'ชื่อ-นามสกุล','company':'บริษัท',
+  'address':'ที่อยู่','date':'วันที่','salary':'เงินเดือน',
+  'position':'ตำแหน่ง','department':'แผนก','phone':'เบอร์โทร',
+  'email':'อีเมล','amount':'จำนวนเงิน','price':'ราคา',
+  'period':'ระยะเวลา','start date':'วันที่เริ่ม','end date':'วันที่สิ้นสุด',
+  'deposit':'เงินมัดจำ','employer':'นายจ้าง','employee':'ลูกจ้าง',
+  'party a':'ฝ่าย ก','party b':'ฝ่าย ข','signature':'ลายเซ็น',
+  '甲方公司名称':'ชื่อบริษัทฝ่าย ก','乙方公司名称':'ชื่อบริษัทฝ่าย ข',
+  '甲方签约代表':'ผู้แทนฝ่าย ก','乙方签约代表':'ผู้แทนฝ่าย ข',
+  '联系方式':'ช่องทางติดต่อ','合同金额':'มูลค่าสัญญา',
+  '签署日期':'วันที่ลงนาม','活动名称':'ชื่องาน',
+  '活动日期':'วันที่จัดงาน','活动地点':'สถานที่จัดงาน',
+  '主办方':'ผู้จัดงาน','服务费用':'ค่าบริการ','付款方式':'วิธีชำระเงิน'
+};
+
+function getThaiHint(f){
+  var lower=f.toLowerCase().trim();
+  if(THAI_HINTS[lower]) return '('+THAI_HINTS[lower]+')';
+  if(THAI_HINTS[f.trim()]) return '('+THAI_HINTS[f.trim()]+')';
+  for(var key in THAI_HINTS){
+    if(lower.includes(key)||f.includes(key)) return '('+THAI_HINTS[key]+')';
+  }
+  return '';
+}
+
+function SF(k,orig,val){S.form[orig]=val;}
+function readForm(){
+  if(!S.cur)return;
+  [...new Set([...(S.cur.body||'').matchAll(/\{\{(.+?)\}\}/g)].map(m=>m[1]))].forEach(f=>{const el=document.getElementById('f_'+fid(f));if(el)S.form[f]=el.value;});
+}
+function filled(){
+  if(!S.cur)return'';
+  let b=S.cur.body||'';
+  for(const[k,v]of Object.entries(S.form))b=b.replaceAll(`{{${k}}}`,v||`[${k}]`);
+  return b;
+}
+function gS1(){readForm();show123(1);}
+function gS2(){readForm();show123(2);setTimeout(rsz,100);}
+function gS3(){show123(3);renderPrev();}
+function show123(n){
+  [1,2,3].forEach(i=>{
+    document.getElementById('s'+i).style.display=i===n?'':'none';
+    const el=document.getElementById('step'+i);
+    el.className='step '+(i<n?'done':i===n?'active':'');
+    el.querySelector('.sn').textContent=i<n?'✓':i;
+  });
+}
+
+// ════════════════════════════════════════════
+// Signature pads
+// ════════════════════════════════════════════
+function initSigs(){
+  [1,2].forEach(n=>{
+    const c=document.getElementById('sc'+n);if(!c)return;
+    let dn=false,lx=0,ly=0;
+    const gp=e=>{const r=c.getBoundingClientRect(),sx=c.width/r.width,sy=c.height/r.height;return e.touches?{x:(e.touches[0].clientX-r.left)*sx,y:(e.touches[0].clientY-r.top)*sy}:{x:(e.clientX-r.left)*sx,y:(e.clientY-r.top)*sy};};
+    const st=e=>{e.preventDefault();dn=true;const p=gp(e);lx=p.x;ly=p.y;document.getElementById('sl'+n).classList.add('h');};
+    const mv=e=>{if(!dn)return;e.preventDefault();const p=gp(e),ctx=c.getContext('2d');ctx.beginPath();ctx.moveTo(lx,ly);ctx.lineTo(p.x,p.y);ctx.strokeStyle='#111';ctx.lineWidth=2.5;ctx.lineCap='round';ctx.stroke();lx=p.x;ly=p.y;};
+    const en=()=>{dn=false;S.sigs[n]=c.toDataURL();};
+    c.addEventListener('mousedown',st);c.addEventListener('mousemove',mv);c.addEventListener('mouseup',en);c.addEventListener('mouseleave',en);
+    c.addEventListener('touchstart',st,{passive:false});c.addEventListener('touchmove',mv,{passive:false});c.addEventListener('touchend',en);
+  });
+}
+function rsz(){[1,2].forEach(n=>{const c=document.getElementById('sc'+n);if(!c)return;const w=c.parentElement.offsetWidth;if(c.width!==w){const d=S.sigs[n];c.width=w;c.height=120;if(d){const i=new Image();i.onload=()=>c.getContext('2d').drawImage(i,0,0);i.src=d;}}});}
+function clrSig(n){const c=document.getElementById('sc'+n);c.getContext('2d').clearRect(0,0,c.width,c.height);S.sigs[n]=null;document.getElementById('sl'+n).classList.remove('h');}
+
+// ════════════════════════════════════════════
+// Preview
+// ════════════════════════════════════════════
+function renderPrev(){
+  const box=document.getElementById('prev');
+  const lines=filled().split('\n');
+  box.innerHTML=lines.map((l,i)=>i===0?`<h2>${l}</h2>`:`<p>${l||'&nbsp;'}</p>`).join('');
+}
+
+// ════════════════════════════════════════════
+// Download — calls Flask backend
+// ════════════════════════════════════════════
+async function doDownload(fmt){
+  const idMap={docx:'btn-docx',pdf:'btn-pdf'};
+  const btn=document.getElementById(idMap[fmt]||('btn-'+fmt));
+  if(!btn){ console.error('Button not found for fmt:',fmt); return; }
+  btn.disabled=true;
+  const orig=btn.innerHTML;
+  btn.innerHTML=`⏳ ${t('downloading')}`;
+  try{
+    if(!S.cur) throw new Error('No template selected');
+    const payload={
+      title: tplName(S.cur),
+      body:  filled(),
+      sig1:  S.sigs[1]||'',
+      sig2:  S.sigs[2]||'',
+      sig1_label: t('sig_label_1'),
+      sig2_label: t('sig_label_2'),
+    };
+    const res=await fetch('/generate/'+fmt,{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify(payload)
+    });
+    if(!res.ok){
+      const txt=await res.text();
+      throw new Error('Server error '+res.status+': '+(txt||res.statusText));
+    }
+    const mimeMap={
+      docx:'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      pdf:'application/pdf'
+    };
+    const arrayBuf=await res.arrayBuffer();
+    if(!arrayBuf.byteLength) throw new Error('Empty response from server');
+    const blob=new Blob([arrayBuf],{type:mimeMap[fmt]||'application/octet-stream'});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement('a');
+    a.style.display='none';
+    a.href=url;
+    a.download=tplName(S.cur)+'.'+fmt;
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(()=>{
+      try{document.body.removeChild(a);}catch(e){}
+      URL.revokeObjectURL(url);
+    },2000);
+    toast(fmt==='docx'?t('toast_dl_word'):t('toast_dl_pdf'),'ok');
+  }catch(e){
+    toast('❌ '+e.message,'err');
+    console.error('[download error]',fmt,e);
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML=orig;
+  }
+}
+// ════════════════════════════════════════════
+// History
+// ════════════════════════════════════════════
+function saveHist(){
+  S.history.unshift({id:'h'+Date.now(),n:tplName(S.cur),ic:S.cur.icon,body:filled(),date:new Date().toLocaleDateString('th-TH',{year:'numeric',month:'long',day:'numeric'})});
+  localStorage.setItem('cio_hist2',JSON.stringify(S.history));
+  toast(t('toast_saved')+' 💾','ok');
+}
+function renderHist(){
+  const l=document.getElementById('hlist');
+  if(!S.history.length){l.innerHTML=`<div class="empty"><div class="empty-i">🗂️</div><div class="empty-t">${t('empty_hist')}</div><div class="empty-s">${t('empty_hist_s')}</div></div>`;return;}
+  l.innerHTML=S.history.map(d=>`<div class="di"><div class="di-ic">${d.ic||'📄'}</div><div class="di-info"><div class="di-n">${d.n}</div><div class="di-m">${d.date}</div></div><div class="di-act"><button class="btn bs bsm" onclick="viewH('${d.id}')">👁</button><button class="btn bd bsm" onclick="delH('${d.id}')">🗑</button></div></div>`).join('');
+}
+function viewH(id){
+  const d=S.history.find(x=>x.id===id);if(!d)return;
+  const w=window.open('','_blank');
+  w.document.write(`<html><head><meta charset="UTF-8"><title>${d.n}</title><style>body{font-family:'Sarabun',sans-serif;padding:60px;line-height:1.9;font-size:15px;max-width:720px;margin:auto}</style></head><body><pre style="white-space:pre-wrap;font-family:inherit">${d.body}</pre></body></html>`);
+  w.document.close();
+}
+function delH(id){if(!confirm(t('confirm_del')))return;S.history=S.history.filter(x=>x.id!==id);localStorage.setItem('cio_hist2',JSON.stringify(S.history));renderHist();toast(t('toast_deleted'),'ok');}
+
+// ════════════════════════════════════════════
+// Modals
+// ════════════════════════════════════════════
+function showMo(id){document.getElementById(id).style.display='flex';}
+function closeMo(id){document.getElementById(id).style.display='none';}
+document.querySelectorAll('.mo').forEach(m=>m.addEventListener('click',e=>{if(e.target===m)m.style.display='none';}));
+
+function saveMan(){
+  const name=document.getElementById('m-name').value.trim();
+  const body=document.getElementById('m-body').value.trim();
+  if(!name||!body){toast(t('toast_err_body'),'err');return;}
+  const mo=document.getElementById('mo-man');
+  const eid=mo.getAttribute('data-eid');
+  const tp={id:eid||'t'+Date.now(),name,icon:document.getElementById('m-icon').value||'📄',
+    desc:document.getElementById('m-desc').value.trim(),body,
+    tags:document.getElementById('m-tags').value.split(',').map(s=>s.trim()).filter(Boolean)};
+  if(eid){const i=S.templates.findIndex(x=>x.id===eid);if(i!==-1)S.templates[i]=tp;}
+  else S.templates.push(tp);
+  saveTpls();renderTpls();closeMo('mo-man');mo.removeAttribute('data-eid');
+  ['m-name','m-icon','m-desc','m-body','m-tags'].forEach(id=>document.getElementById(id).value='');
+  toast(eid?t('toast_edited'):t('toast_added'),'ok');
+}
+
+// ════════════════════════════════════════════
+// File Upload
+// ════════════════════════════════════════════
+function onDrop(e){e.preventDefault();document.getElementById('uz').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)onFileSel(f);}
+function onFileSel(file){
+  if(!file)return;
+  const ext=file.name.split('.').pop().toLowerCase();
+  if(!['docx','pdf','txt'].includes(ext)){toast(t('toast_filetype'),'err');return;}
+  S.ulFile=file;
+  document.getElementById('ul-prog').style.display='';
+  document.getElementById('ul-res').style.display='none';
+  document.getElementById('ul-save').style.display='none';
+  setBar(10,t('reading_file'));
+  if(ext==='txt')readTxt(file);
+  else if(ext==='docx')readDocx(file);
+  else readPdf(file);
+}
+function setBar(p,msg){document.getElementById('ul-bar').style.width=p+'%';document.getElementById('ul-stat').textContent=msg;}
+function showULRes(text){
+  S.ulText=text;
+  setBar(100,'✓');
+  setTimeout(()=>document.getElementById('ul-prog').style.display='none',500);
+  const ext=S.ulFile.name.split('.').pop().toLowerCase();
+  const cls={docx:'fb-d',pdf:'fb-p',txt:'fb-t'},lbl={docx:'📄 DOCX',pdf:'📑 PDF',txt:'📝 TXT'};
+  document.getElementById('ul-badge').innerHTML=`<span class="fb ${cls[ext]}">${lbl[ext]}</span>`;
+  document.getElementById('ul-fn').textContent=S.ulFile.name;
+  document.getElementById('ul-name').value=S.ulFile.name.replace(/\.[^.]+$/,'').replace(/[-_]/g,' ');
+  document.getElementById('ul-prev').textContent=text.slice(0,500)+(text.length>500?'\n...(truncated)':'');
+  scanPH();
+  document.getElementById('ul-res').style.display='';
+  document.getElementById('ul-save').style.display='';
+}
+function scanPH(){
+  const text=S.ulText;
+  const style=document.querySelector('input[name=phs]:checked').value;
+  let fields=[];
+  if(style==='double')fields=[...new Set([...text.matchAll(/\{\{(.+?)\}\}/g)].map(m=>m[1]))];
+  else if(style==='bracket')fields=[...new Set([...text.matchAll(/\[([^\]]{1,40})\]/g)].map(m=>m[1]))];
+  const w=document.getElementById('ul-ph-w');
+  if(fields.length){document.getElementById('ul-chips').innerHTML=fields.map(f=>`<span class="ph-chip">{{${f}}}</span>`).join('');w.style.display='';}
+  else w.style.display='none';
+}
+function reScan(){if(S.ulText)scanPH();}
+function normBody(text){
+  const s=document.querySelector('input[name=phs]:checked').value;
+  if(s==='double')return text;
+  if(s==='bracket')return text.replace(/\[([^\]]{1,40})\]/g,'{{$1}}');
+  if(s==='underscore'){let n=0;return text.replace(/_{5,}/g,()=>`{{Field ${++n}}}`);}
+  if(s==='dotdot'){let n=0;return text.replace(/\.{5,}/g,()=>`{{Field ${++n}}}`);}
+  return text;
+}
+function readTxt(file){setBar(50,'...');const r=new FileReader();r.onload=e=>showULRes(e.target.result);r.onerror=()=>toast(t('toast_read_err'),'err');r.readAsText(file,'UTF-8');}
+function readDocx(file){setBar(30,'...');const r=new FileReader();r.onload=e=>{setBar(60,'...');mammoth.extractRawText({arrayBuffer:e.target.result}).then(res=>showULRes(res.value)).catch(()=>{toast(t('toast_read_err'),'err');document.getElementById('ul-prog').style.display='none';});};r.readAsArrayBuffer(file);}
+function readPdf(file){
+  setBar(20,'...');
+  const r=new FileReader();
+  r.onload=async e=>{
+    try{
+      const pdf=await pdfjsLib.getDocument({data:new Uint8Array(e.target.result)}).promise;
+      let text='';
+      for(let i=1;i<=pdf.numPages;i++){setBar(20+Math.round((i/pdf.numPages)*72),t('reading_page')+' '+i+'/'+pdf.numPages);const pg=await pdf.getPage(i);const ct=await pg.getTextContent();text+=ct.items.map(x=>x.str).join(' ')+'\n';}
+      showULRes(text.trim());
+    }catch(e){toast(t('toast_read_err')+': '+e.message,'err');document.getElementById('ul-prog').style.display='none';}
+  };
+  r.readAsArrayBuffer(file);
+}
+function saveUL(){
+  const name=document.getElementById('ul-name').value.trim();
+  if(!name){toast(t('toast_err_name'),'err');return;}
+  if(!S.ulText){return;}
+  const tp={id:'t'+Date.now(),name,icon:document.getElementById('ul-icon').value||'📄',
+    desc:document.getElementById('ul-desc').value.trim(),body:normBody(S.ulText),
+    tags:document.getElementById('ul-tags').value.split(',').map(s=>s.trim()).filter(Boolean)};
+  S.templates.push(tp);saveTpls();renderTpls();closeMo('mo-ul');resetUL();
+  toast(t('toast_added')+'✅','ok');
+}
+function resetUL(){
+  S.ulText='';S.ulFile=null;
+  ['ul-name','ul-icon','ul-desc','ul-tags'].forEach(id=>document.getElementById(id).value='');
+  const inp=document.getElementById('ul-in');if(inp)inp.value='';
+  document.getElementById('ul-prog').style.display='none';
+  document.getElementById('ul-res').style.display='none';
+  document.getElementById('ul-save').style.display='none';
+  document.getElementById('ul-ph-w').style.display='none';
+  setBar(0,'');
+  const d=document.querySelector('input[name=phs][value=double]');if(d)d.checked=true;
+}
+
+// ════════════════════════════════════════════
+// Toast
+// ════════════════════════════════════════════
+function toast(msg,type='ok'){
+  const w=document.getElementById('tw');
+  const el=document.createElement('div');
+  el.className='toast '+(type==='ok'?'ok':'err');
+  el.innerHTML=`<span>${type==='ok'?'✅':'❌'}</span>${msg}`;
+  w.appendChild(el);setTimeout(()=>el.remove(),3200);
+}
+
+// ════════════════════════════════════════════
+// Boot
+// ════════════════════════════════════════════
+init();
+window.addEventListener('resize',rsz);
+</script>
+</body>
+</html>
